@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Target planner · CGPA Companion{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Target planner</h1><p class="sub">Find the GPA you need in your remaining credits to reach a target CGPA.</p></div></div>
+<div class="grid">
+  <section class="card" aria-labelledby="plan-title">
+    <div class="card-head"><h2 id="plan-title">Your goal</h2></div>
+    <p class="help" style="margin:0 0 14px">Current CGPA: <strong>{{ cumulative.rounded }}</strong> over {{ cumulative.counted_credits|floatformat:"-1" }} credits.</p>
+    <form method="get" novalidate>
+      {% include "partials/_field.html" with field=form.target %}
+      {% include "partials/_field.html" with field=form.credits %}
+      <button class="btn btn-block" type="submit">Calculate</button>
+    </form>
+  </section>
+  <section class="card" aria-labelledby="out-title" aria-live="polite">
+    <div class="card-head"><h2 id="out-title">Result</h2></div>
+    {% if plan %}
+      {% if plan.status == 'reachable' %}
+      <div class="result-box ok"><div class="sub">You need a GPA of at least</div><div class="big">{{ plan.needed }}</div>
+        <p class="help">across your next {{ form.cleaned_data.credits }} credits. The highest possible on this scale is {{ plan.highest }}.</p></div>
+      {% elif plan.status == 'secured' %}
+      <div class="result-box ok"><div class="big">Already secured</div>
+        <p class="help">Your target is at or below what you already have, even with the lowest grades on these credits.</p></div>
+      {% else %}
+      <div class="result-box bad"><div class="big">Not reachable</div>
+        <p class="help">Even straight {{ plan.highest }}s over {{ form.cleaned_data.credits }} credits would give a CGPA of {{ plan.best_case }}. Try a lower target or more credits.</p></div>
+      {% endif %}
+    {% else %}<div class="empty"><strong>Enter a target</strong>We’ll calculate the GPA you need.</div>{% endif %}
+  </section>
+</div>
+{% endblock %}

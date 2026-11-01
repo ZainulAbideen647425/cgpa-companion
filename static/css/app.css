@@ -52,3 +52,21 @@ dialog::backdrop{background:rgba(15,23,42,.5)}dialog p{color:var(--muted)}dialog
 .table-desktop{display:none}.cards-m{display:grid;gap:10px}.sc{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px}
 .sc .row{display:flex;justify-content:space-between;align-items:center;gap:8px}.who{display:none}}
 @media print{.topbar,.no-print,footer{display:none!important}body{background:#fff;color:#000}.card{box-shadow:none;border:0;padding:0}main{padding:0}}
+/* --- navigation, landing, semesters, chart, planner --- */
+.navlink{color:var(--muted);font-weight:600;font-size:14px;padding:8px 10px;border-radius:8px}.navlink:hover{background:var(--bg);text-decoration:none;color:var(--text)}.navlink.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 10%,transparent)}
+.nav{flex-wrap:wrap;justify-content:flex-end}
+.hero{padding:56px 0 40px;text-align:center}.hero h1{font-size:clamp(2rem,1.4rem + 3vw,3.2rem);max-width:16ch;margin:0 auto 14px}
+.hero p{max-width:56ch;margin:0 auto 24px;color:var(--muted);font-size:1.1rem}.hero .actions{justify-content:center;flex-wrap:wrap}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}
+.feature h2{margin:10px 0 6px}.feature p{margin:0;color:var(--muted)}.ficon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand);font-weight:800}
+.note{margin:28px auto 0;max-width:640px;text-align:center;color:var(--muted);font-size:14px}
+.stack{display:grid;gap:20px}.row-link td a.name{font-weight:600;color:var(--text)}
+.inline{display:inline}.btn-link{background:none;border:0;padding:0;font:inherit;color:var(--danger);cursor:pointer}
+.chart{width:100%;height:auto;display:block}.chart .grid{stroke:var(--line);stroke-width:1}.chart text{fill:var(--muted);font-size:11px}
+.chart .l-gpa{fill:none;stroke:var(--brand-2);stroke-width:2.5}.chart .l-cgpa{fill:none;stroke:var(--ok);stroke-width:2.5;stroke-dasharray:6 4}
+.chart .d-gpa{fill:var(--brand-2)}.chart .d-cgpa{fill:var(--ok)}
+.key{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:8px;flex-wrap:wrap}.key i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.result-box{border-radius:var(--radius);padding:18px;border:1px solid var(--line);background:var(--bg);margin-top:18px}
+.result-box .big{font-size:2.2rem;font-weight:800;letter-spacing:-.03em}.result-box.ok{border-color:var(--ok)}.result-box.bad{border-color:var(--danger)}
+.help{font-size:13px;color:var(--muted);margin:4px 0 0}
+@media (max-width:760px){.features{grid-template-columns:1fr}.navlink{padding:6px 8px}.nav{gap:4px}}
