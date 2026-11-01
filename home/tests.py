@@ -100,3 +100,47 @@ class LegacyAssignCommandTests(TestCase):
         Subject.objects.create(user=None, name='old', credit=3, grade='A')
         call_command('assign_legacy_subjects', username='alice', dry_run=True, stdout=StringIO())
         self.assertIsNone(Subject.objects.get(name='old').user)
+
+
+class UiSmokeTests(TestCase):
+    """Templates render, extend the base layout and load the stylesheet."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('alice', password='pw')
+
+    def test_auth_pages_render(self):
+        for name in ('login', 'register'):
+            r = self.client.get(reverse(name))
+            self.assertContains(r, 'css/app.css')
+            self.assertContains(r, 'csrfmiddlewaretoken')
+
+    def test_dashboard_shows_summary_and_empty_state(self):
+        self.client.login(username='alice', password='pw')
+        r = self.client.get(reverse('cgpa_calculator'))
+        self.assertContains(r, 'No subjects yet')
+        self.assertContains(r, 'Total credits')
+
+    def test_dashboard_lists_subjects_with_confirm_delete(self):
+        self.client.login(username='alice', password='pw')
+        Subject.objects.create(user=self.user, name='Algorithms', credit=3, grade='A')
+        r = self.client.get(reverse('cgpa_calculator'))
+        self.assertContains(r, 'Algorithms')
+        self.assertContains(r, 'data-confirm')
+        self.assertContains(r, 'href="/delete/')
+
+    def test_subject_name_is_escaped(self):
+        self.client.login(username='alice', password='pw')
+        Subject.objects.create(user=self.user, name='<script>x</script>', credit=3, grade='A')
+        r = self.client.get(reverse('cgpa_calculator'))
+        self.assertNotContains(r, '<script>x</script>')
+
+    def test_result_page_and_edit_page_render(self):
+        self.client.login(username='alice', password='pw')
+        s = Subject.objects.create(user=self.user, name='Algorithms', credit=3, grade='A')
+        self.assertContains(self.client.get(reverse('result')), 'Print / Save as PDF')
+        self.assertContains(self.client.get(reverse('edit_subject', args=[s.id])), 'Save changes')
+
+    def test_error_messages_use_error_style(self):
+        r = self.client.post(reverse('login'), {'username': 'alice', 'password': 'bad'}, follow=True)
+        self.assertContains(r, 'alert-error')
+        self.assertNotContains(r, 'alert-success')

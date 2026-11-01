@@ -1,95 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGPA Calculator</title>
-    <!-- Add jsPDF library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-</head>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
-    .calculator {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-
-    form {
-        margin-bottom: 20px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-
-    th,
-    td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        text-align: left;
-    }
-
-    th {
-        color: rgb(97, 93, 93);
-    }
-
-    #cgpa {
-        font-weight: bold;
-    }
-
-    button {
-        padding: 10px;
-        color: black;
-        border: none;
-        font-size: 13px;
-        font-weight: bold;
-        border-radius: 3px;
-        cursor: pointer;
-        margin-left:655px
-    }
-</style>
-<body>
-    <div id="mn" class="calculator" >
-        <img style="width: 130px; height:130px; margin-left:230px" src="https://i.ibb.co/JkyXTWp/1696184885877pp.jpg" alt="">
-        <br>
-        <br>
-        <table>
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                    <th>Grade</th>
-                    <th>Credit</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for subject in subjects %}
-                <tr>
-                    <td style="font-family: 'Times New Roman', Times, serif;">{{ subject.name }}</td>
-                    <td style="font-family: 'Times New Roman', Times, serif;">{{ subject.grade }}</td>
-                    <td style="font-family: 'Times New Roman', Times, serif;">{{ subject.credit }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <h3 style="font-family: 'Times New Roman', Times, serif;">CGPA: <span id="cgpa">{{cgpa}}</span></h3>
-    </div>
-    <br>
-    <button onclick="myfun('mn')" type="button" class="btn btn-success btn1 ">Generate Receipt</button>
-    <script type="text/javascript">
-        function myfun(pa) {
-            let d = document.getElementById(pa).innerHTML;
-            document.body.innerHTML = d;
-            window.print();
-        }
-    </script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Result · CGPA Companion{% endblock %}
+{% block content %}
+<div class="page-head no-print">
+  <div><h1>Result</h1><p class="sub">A printable summary of your subjects and CGPA.</p></div>
+  <div class="actions"><a class="btn btn-ghost" href="{% url 'cgpa_calculator' %}">Back</a><button type="button" class="btn" onclick="window.print()">Print / Save as PDF</button></div>
+</div>
+<section class="card receipt" id="mn" style="max-width:720px">
+  <div class="brand" style="margin-bottom:12px"><span class="logo" aria-hidden="true">C</span>CGPA Companion</div>
+  <div class="meta"><span>Student: <strong>{{ user.username }}</strong></span><span>{% now "j F Y" %}</span></div>
+  {% if subjects %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Subject</th><th>Grade</th><th class="num">Credit</th></tr></thead>
+      <tbody>{% for subject in subjects %}
+        <tr><td>{{ subject.name }}</td><td><span class="badge g-{{ subject.grade }}">{{ subject.grade }}</span></td><td class="num">{{ subject.credit }}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+  {% else %}<div class="empty"><strong>No subjects to show</strong>Add subjects on the dashboard first.</div>{% endif %}
+  <div class="total"><span>CGPA <small class="sub">· {{ total_credits }} credits</small></span><span id="cgpa">{{ cgpa }}</span></div>
+</section>
+{% endblock %}
