@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p6e9q)rww*8%xy)@!9)g^^#dlj-mqf9r^jpd9%(xgsn!_wv%+8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def _env_bool(name, default=False):
+    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
 
-ALLOWED_HOSTS = []
+
+# SECURITY: configuration comes from the environment. The key that used to be
+# committed here must be treated as compromised and never reused.
+DEBUG = _env_bool('DJANGO_DEBUG', True)
+
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'dev-only-insecure-key-not-for-production'
+    else:
+        raise ImproperlyConfigured('Set DJANGO_SECRET_KEY when DJANGO_DEBUG is off.')
+
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
 
 
 # Application definition
@@ -38,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',
+    'calculator',
 ]
 
 MIDDLEWARE = [
@@ -122,3 +138,16 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Auth redirects
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+# Production hardening (only active when DEBUG is off)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = _env_bool('DJANGO_SSL_REDIRECT', True)
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '0'))

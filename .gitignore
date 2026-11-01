@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+staticfiles/
+media/
+*.sqlite3-journal
+# NOTE: db.sqlite3 is still tracked on purpose (it holds your existing data).
+# After you back it up, run `git rm --cached db.sqlite3` and add it here.
