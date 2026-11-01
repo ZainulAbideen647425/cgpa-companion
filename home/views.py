@@ -7,37 +7,49 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required 
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+from django.utils.http import url_has_allowed_host_and_scheme
 
-# Mapping of letter grades to numeric values
-GRADE_POINTS = {'A': 9, 'S': 10, 'B': 8, 'C': 7, 'D': 6, 'F': 0}
+from calculator.engine import Course, calculate_gpa
+from calculator.policies import LEGACY_10_POINT
+
+
+def _user_subjects(request):
+    """Subjects owned by the logged-in user (data isolation)."""
+    return Subject.objects.filter(user=request.user).order_by('id')
+
+
+def _summarize(subjects):
+    """CGPA and credit totals via the calculation engine (legacy 10-point scale)."""
+    courses = [Course(s.name, s.credit, s.grade) for s in subjects]
+    result = calculate_gpa(courses, LEGACY_10_POINT)
+    return result
+
+
+def _save_subject_for(request, form):
+    subject = form.save(commit=False)
+    subject.user = request.user
+    subject.save()
+    return subject
+
+
 @login_required(login_url='/login/')
 def cgpa_calculator(request):
-    subjects = Subject.objects.all()
     form = SubjectForm()
 
     if request.method == 'POST':
         form = SubjectForm(request.POST)
         if form.is_valid():
-            form.save()
+            _save_subject_for(request, form)
             return redirect('cgpa_calculator')
 
-    # Calculate CGPA
-    total_credits = 0
-    total_grade_points = 0
-
-    for subject in subjects:
-        total_credits += subject.credit
-        total_grade_points += subject.credit * GRADE_POINTS.get(subject.grade, 0)
-
-    if total_credits != 0:
-        cgpa = total_grade_points / total_credits
-    else:
-        cgpa = 0
+    subjects = _user_subjects(request)
+    summary = _summarize(subjects)
 
     context = {
         'subjects': subjects,
         'form': form,
-        'cgpa': cgpa,
+        'cgpa': summary.rounded,
+        'total_credits': summary.counted_credits,
     }
 
     return render(request, 'index.html', context)
@@ -45,7 +57,7 @@ def cgpa_calculator(request):
 
 @login_required(login_url='/login/')
 def edit_subject(request, subject_id):
-    subject = get_object_or_404(Subject, id=subject_id)
+    subject = get_object_or_404(Subject, id=subject_id, user=request.user)
 
     if request.method == 'POST':
         form = SubjectForm(request.POST, instance=subject)
@@ -64,39 +76,20 @@ def edit_subject(request, subject_id):
 
 @login_required(login_url='/login/')
 def delete_subject(request, subject_id):
-    subject = get_object_or_404(Subject, id=subject_id)
+    subject = get_object_or_404(Subject, id=subject_id, user=request.user)
     subject.delete()
     return redirect('cgpa_calculator')
 
 
 @login_required(login_url='/login/')
 def result(request):
-    subjects = Subject.objects.all()
-    form = SubjectForm()
-
-    if request.method == 'POST':
-        form = SubjectForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('cgpa_calculator')
-
-    # Calculate CGPA
-    total_credits = 0
-    total_grade_points = 0
-
-    for subject in subjects:
-        total_credits += subject.credit
-        total_grade_points += subject.credit * GRADE_POINTS.get(subject.grade, 0)
-
-    if total_credits != 0:
-        cgpa = total_grade_points / total_credits
-    else:
-        cgpa = 0
+    subjects = _user_subjects(request)
+    summary = _summarize(subjects)
 
     context = {
         'subjects': subjects,
-        'form': form,
-        'cgpa': cgpa,
+        'cgpa': summary.rounded,
+        'total_credits': summary.counted_credits,
     }
 
     return render(request, 'pdf.html', context)
@@ -115,7 +108,12 @@ def login_page(request):
             user_obj = authenticate(username=username, password=password)
             if user_obj:
                 login(request, user_obj)
-                return redirect('receipts')
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url and url_has_allowed_host_and_scheme(
+                        next_url, allowed_hosts={request.get_host()},
+                        require_https=request.is_secure()):
+                    return redirect(next_url)
+                return redirect('cgpa_calculator')
             messages.error(request, "Wrong Password")
             return redirect('/login/')
         except Exception as e:
