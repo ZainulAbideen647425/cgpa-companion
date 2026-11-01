@@ -1,98 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGPA Calculator</title>
-</head>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-    }
-    #calculator {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    
-    h1{
-        color: #333;
-        text-align: center;
-        font-family: 'Times New Roman', Times, serif;
-    }
-    form {
-        margin-bottom: 20px;
-    }
-    button {
-        padding: 10px;
-        color: black;
-        border: none;
-        font-size: 13px;
-        font-weight: bold;
-        border-radius: 3px;
-        cursor: pointer;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    th, td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        text-align: left;
-    }
-    th {
-        background-color: #d9dad9d7;
-        color: rgb(97, 93, 93);
-    }
-    #cgpa {
-        font-weight: bold;
-    }
-    a{
-        color: black;
-    }
-</style>
-<body>
-<div id="calculator">
-    <h1 style="color: green;">CGPA Calculator</h1>
-    <h2 style="font-family: 'Times New Roman', Times, serif; text-align:center;">CGPA Calculator</h2>
-    <br>
-    <form method="post" action="{% url 'cgpa_calculator' %}">
-        {% csrf_token %}
-      {{form.as_p}}
-        <button type="submit">Add Subject</button>
-       <button> <a href="{% url 'result' %}">Generate Result</a></button>
+{% extends "base.html" %}
+{% block title %}Dashboard · CGPA Companion{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Your CGPA</h1><p class="sub">Add your subjects and see your cumulative result update.</p></div>
+  <a class="btn" href="{% url 'result' %}">Generate result</a>
+</div>
+
+<section class="stats" aria-label="Summary">
+  <div class="stat hero"><div class="label">CGPA</div><div class="value">{{ cgpa }}</div></div>
+  <div class="stat"><div class="label">Total credits</div><div class="value">{{ total_credits }}</div></div>
+  <div class="stat"><div class="label">Subjects</div><div class="value">{{ subjects|length }}</div></div>
+</section>
+
+<div class="grid">
+  <section class="card" aria-labelledby="add-title">
+    <div class="card-head"><h2 id="add-title">Add subject</h2></div>
+    <form method="post" action="{% url 'cgpa_calculator' %}" novalidate>
+      {% csrf_token %}
+      {% include "partials/_field.html" with field=form.name %}
+      {% include "partials/_field.html" with field=form.credit %}
+      {% include "partials/_field.html" with field=form.grade %}
+      <button type="submit" class="btn btn-block">Add subject</button>
     </form>
-   <br>
-    <table>
-        <thead>
-        <tr>
-            <th>Subject</th>
-            <th>Grade</th>
-            <th>Credit</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
+    <div class="legend" aria-label="Grade scale"><span>S = 10</span><span>A = 9</span><span>B = 8</span><span>C = 7</span><span>D = 6</span><span>F = 0</span></div>
+  </section>
+
+  <section class="card" aria-labelledby="list-title">
+    <div class="card-head"><h2 id="list-title">Subjects</h2></div>
+    {% if subjects %}
+    <div class="table-wrap table-desktop">
+      <table>
+        <thead><tr><th>Subject</th><th>Grade</th><th class="num">Credit</th><th class="num">Actions</th></tr></thead>
         <tbody>
         {% for subject in subjects %}
-            <tr>
-                <td style="font-family: 'Times New Roman', Times, serif;">{{ subject.name }}</td>
-                <td style="font-family: 'Times New Roman', Times, serif;">{{ subject.grade }}</td>
-                <td style="font-family: 'Times New Roman', Times, serif;">{{ subject.credit }}</td>
-                <td>
-                  <button><a  href="{% url 'edit_subject' subject.id %}">Edit</a></button> 
-                  <button><a href="{% url 'delete_subject' subject.id %}">Delete</a></button> 
-                </td>
-            </tr>
+          <tr>
+            <td>{{ subject.name }}</td>
+            <td><span class="badge g-{{ subject.grade }}">{{ subject.grade }}</span></td>
+            <td class="num">{{ subject.credit }}</td>
+            <td><div class="actions">
+              <a class="btn btn-ghost btn-sm" href="{% url 'edit_subject' subject.id %}">Edit</a>
+              <a class="btn btn-ghost btn-sm" href="{% url 'delete_subject' subject.id %}" data-confirm="Delete “{{ subject.name }}”? This can’t be undone.">Delete</a>
+            </div></td>
+          </tr>
         {% endfor %}
         </tbody>
-    </table>
+      </table>
+    </div>
+    <div class="cards-m">
+      {% for subject in subjects %}
+      <div class="sc">
+        <div class="row"><strong>{{ subject.name }}</strong><span class="badge g-{{ subject.grade }}">{{ subject.grade }}</span></div>
+        <div class="row"><span class="sub">{{ subject.credit }} credit{{ subject.credit|pluralize }}</span>
+          <div class="actions">
+            <a class="btn btn-ghost btn-sm" href="{% url 'edit_subject' subject.id %}">Edit</a>
+            <a class="btn btn-ghost btn-sm" href="{% url 'delete_subject' subject.id %}" data-confirm="Delete “{{ subject.name }}”? This can’t be undone.">Delete</a>
+          </div></div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty"><strong>No subjects yet</strong>Add your first subject to start calculating your CGPA.</div>
+    {% endif %}
+  </section>
 </div>
-<br>
-<button style="margin-left: 400px;"> <a class="ok" href="{% url 'logout' %}">Logout </a></button>
-</body>
-</html>
+{% endblock %}

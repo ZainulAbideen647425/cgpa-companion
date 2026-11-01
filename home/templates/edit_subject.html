@@ -1,62 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-<body>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        #calculator {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        h2 {
-            font-family: 'Times New Roman', Times, serif;
-        }
-
-        button {
-            padding: 10px;
-            color: black;
-            border: none;
-            font-size: 13px;
-            font-weight: bold;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        a {
-            color: black;
-        }
-    </style>
-
-
-    <div id="calculator">
-        <br>
-
-        <h2 style="text-align: center;">Edit Subject</h2>
-        <br>
-        <form method="post" action="{% url 'edit_subject' subject_id=subject_id %}">
-            {% csrf_token %}
-            {{ form.as_p }}
-
-            <button type="submit">Save Changes</button>
-        </form>
-        <br>
-        <button><a href="{% url 'cgpa_calculator' %}">Cancel</a></button>
-
+{% extends "base.html" %}
+{% block title %}Edit subject · CGPA Companion{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Edit subject</h1><p class="sub">Update the details, then save.</p></div></div>
+<section class="card" style="max-width:480px">
+  <form method="post" action="{% url 'edit_subject' subject_id=subject_id %}" novalidate>
+    {% csrf_token %}
+    {% include "partials/_field.html" with field=form.name %}
+    {% include "partials/_field.html" with field=form.credit %}
+    {% include "partials/_field.html" with field=form.grade %}
+    <div class="actions" style="justify-content:flex-start">
+      <button type="submit" class="btn">Save changes</button>
+      <a class="btn btn-ghost" href="{% url 'cgpa_calculator' %}">Cancel</a>
     </div>
-</body>
-
-</html>
+  </form>
+</section>
+{% endblock %}
