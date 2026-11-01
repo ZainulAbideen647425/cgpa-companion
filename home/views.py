@@ -32,8 +32,13 @@ def _save_subject_for(request, form):
     return subject
 
 
-@login_required(login_url='/login/')
 def cgpa_calculator(request):
+    # Logged-out visitors get the landing page; logged-in users get their dashboard.
+    if not request.user.is_authenticated:
+        if request.method == 'POST':
+            return redirect('/login/')
+        return render(request, 'landing.html')
+
     form = SubjectForm()
 
     if request.method == 'POST':

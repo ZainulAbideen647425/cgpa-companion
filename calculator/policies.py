@@ -22,3 +22,12 @@ LEGACY_10_POINT = Policy(
     source='Original project code (home/views.py GRADE_POINTS)',
     verification_status='unverified',
 )
+
+
+POLICIES = {LEGACY_10_POINT.key: LEGACY_10_POINT}
+DEFAULT_POLICY = LEGACY_10_POINT
+
+
+def get_policy(key=None):
+    """Look up a policy by key; unknown or empty keys fall back to the default."""
+    return POLICIES.get(key, DEFAULT_POLICY)

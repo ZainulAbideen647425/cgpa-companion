@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Semesters · CGPA Companion{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Semesters</h1><p class="sub">Your academic history, GPA by semester and cumulative CGPA.</p></div></div>
+
+<section class="stats" aria-label="Summary">
+  <div class="stat hero"><div class="label">Cumulative CGPA</div><div class="value">{{ cumulative.rounded }}</div></div>
+  <div class="stat"><div class="label">Credits counted</div><div class="value">{{ cumulative.counted_credits|floatformat:"-1" }}</div></div>
+  <div class="stat"><div class="label">Semesters</div><div class="value">{{ rows|length }}</div></div>
+</section>
+
+<div class="stack">
+  <section class="card" aria-labelledby="trend-title">
+    <div class="card-head"><h2 id="trend-title">GPA trend</h2></div>
+    {% if chart.has_data %}
+    <svg class="chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-label="Line chart of semester GPA and cumulative CGPA">
+      {% for g in chart.grid %}<line class="grid" x1="{{ chart.pad }}" x2="{{ chart.width }}" y1="{{ g.y }}" y2="{{ g.y }}"/><text x="4" y="{{ g.y }}" dy="4">{{ g.label }}</text>{% endfor %}
+      {% if chart.multi %}<polyline class="l-cgpa" points="{{ chart.cgpa_points }}"/><polyline class="l-gpa" points="{{ chart.gpa_points }}"/>{% endif %}
+      {% for d in chart.dots %}<circle class="d-cgpa" cx="{{ d.x }}" cy="{{ d.cy }}" r="4"><title>{{ d.label }} CGPA {{ d.cgpa }}</title></circle><circle class="d-gpa" cx="{{ d.x }}" cy="{{ d.y }}" r="5"><title>{{ d.label }} GPA {{ d.gpa }}</title></circle>{% endfor %}
+    </svg>
+    <div class="key"><span><i style="background:var(--brand-2)"></i>Semester GPA</span><span><i style="background:var(--ok)"></i>Cumulative CGPA</span></div>
+    {% else %}<div class="empty"><strong>No graded courses yet</strong>Add a semester and grade its courses to see your trend.</div>{% endif %}
+  </section>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="new-title">
+      <div class="card-head"><h2 id="new-title">Add semester</h2></div>
+      <form method="post" novalidate>{% csrf_token %}
+        {% include "partials/_field.html" with field=form.name %}
+        <button class="btn btn-block" type="submit">Add semester</button>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="hist-title">
+      <div class="card-head"><h2 id="hist-title">Academic history</h2></div>
+      {% if rows %}
+      <div class="table-wrap"><table>
+        <thead><tr><th>Semester</th><th class="num">Courses</th><th class="num">GPA</th><th class="num">CGPA</th><th></th></tr></thead>
+        <tbody>{% for r in rows %}
+          <tr class="row-link"><td><a class="name" href="{% url 'semester_detail' r.semester.pk %}">{{ r.semester.name }}</a></td>
+            <td class="num">{{ r.course_count }}</td><td class="num">{{ r.result.rounded }}</td><td class="num">{{ r.cgpa_after.rounded }}</td>
+            <td class="num"><a class="btn btn-ghost btn-sm" href="{% url 'semester_detail' r.semester.pk %}">Open</a></td></tr>
+        {% endfor %}</tbody>
+      </table></div>
+      {% else %}<div class="empty"><strong>No semesters yet</strong>Add your first semester to get started.</div>{% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

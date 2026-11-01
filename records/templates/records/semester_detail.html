@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ semester.name }} · CGPA Companion{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ semester.name }}</h1><p class="sub"><a href="{% url 'semester_list' %}">← All semesters</a></p></div>
+  <form method="post" action="{% url 'semester_delete' semester.pk %}" data-confirm="Delete “{{ semester.name }}” and all its courses? This can’t be undone.">{% csrf_token %}
+    <button class="btn btn-ghost btn-sm" type="submit">Delete semester</button></form>
+</div>
+<section class="stats" aria-label="Summary">
+  <div class="stat hero"><div class="label">Semester GPA</div><div class="value">{{ result.rounded }}</div></div>
+  <div class="stat"><div class="label">Credits counted</div><div class="value">{{ result.counted_credits|floatformat:"-1" }}</div></div>
+  <div class="stat"><div class="label">Cumulative CGPA</div><div class="value">{{ cumulative.rounded }}</div></div>
+</section>
+<div class="grid">
+  <section class="card" aria-labelledby="add-title">
+    <div class="card-head"><h2 id="add-title">Add course</h2></div>
+    <form method="post" novalidate>{% csrf_token %}
+      {% include "partials/_field.html" with field=form.name %}
+      {% include "partials/_field.html" with field=form.code %}
+      {% include "partials/_field.html" with field=form.credit_hours %}
+      {% include "partials/_field.html" with field=form.grade %}
+      <p class="help">Using the same course code in a later semester marks it as a retake.</p>
+      <button class="btn btn-block" type="submit" style="margin-top:12px">Add course</button>
+    </form>
+  </section>
+  <section class="card" aria-labelledby="list-title">
+    <div class="card-head"><h2 id="list-title">Courses</h2></div>
+    {% if courses %}
+    <div class="table-wrap"><table>
+      <thead><tr><th>Course</th><th>Grade</th><th class="num">Credits</th><th class="num">Actions</th></tr></thead>
+      <tbody>{% for c in courses %}
+        <tr><td>{{ c.name }}{% if c.code %} <span class="sub">· {{ c.code }}</span>{% endif %}</td>
+          <td>{% if c.grade %}<span class="badge g-{{ c.grade }}">{{ c.grade }}</span>{% else %}<span class="sub">—</span>{% endif %}</td>
+          <td class="num">{{ c.credit_hours|floatformat:"-1" }}</td>
+          <td><div class="actions"><a class="btn btn-ghost btn-sm" href="{% url 'course_edit' c.pk %}">Edit</a>
+            <form class="inline" method="post" action="{% url 'course_delete' c.pk %}" data-confirm="Delete “{{ c.name }}”?">{% csrf_token %}<button class="btn btn-ghost btn-sm" type="submit">Delete</button></form></div></td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="empty"><strong>No courses yet</strong>Add this semester’s courses to calculate its GPA.</div>{% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Edit course · CGPA Companion{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Edit course</h1><p class="sub"><a href="{% url 'semester_detail' course.semester_id %}">← Back to {{ course.semester.name }}</a></p></div></div>
+<section class="card" style="max-width:480px">
+  <form method="post" novalidate>{% csrf_token %}
+    {% include "partials/_field.html" with field=form.name %}
+    {% include "partials/_field.html" with field=form.code %}
+    {% include "partials/_field.html" with field=form.credit_hours %}
+    {% include "partials/_field.html" with field=form.grade %}
+    <div class="actions" style="justify-content:flex-start"><button class="btn" type="submit">Save changes</button><a class="btn btn-ghost" href="{% url 'semester_detail' course.semester_id %}">Cancel</a></div>
+  </form>
+</section>
+{% endblock %}

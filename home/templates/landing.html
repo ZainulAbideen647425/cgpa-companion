@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}CGPA Companion · Track your GPA and plan your CGPA{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Know exactly where your CGPA stands.</h1>
+  <p>Add your semesters and courses, watch your GPA trend, and find out what grades you need to reach your target CGPA.</p>
+  <div class="actions"><a class="btn" href="{% url 'register' %}">Create a free account</a><a class="btn btn-ghost" href="{% url 'login' %}">Log in</a></div>
+</section>
+<section class="features" aria-label="Features">
+  <div class="card feature"><div class="ficon" aria-hidden="true">1</div><h2>Semester by semester</h2><p>Keep every semester and course in one place, with GPA for each and a running CGPA.</p></div>
+  <div class="card feature"><div class="ficon" aria-hidden="true">2</div><h2>See your trend</h2><p>A simple chart shows whether your GPA and cumulative CGPA are climbing.</p></div>
+  <div class="card feature"><div class="ficon" aria-hidden="true">3</div><h2>Target planner</h2><p>Enter the CGPA you want and the credits left. We tell you the GPA you need, or if it is out of reach.</p></div>
+</section>
+<p class="note">Calculations currently use a 10-point scale (S=10 … F=0). University-specific grading policies are being added only after they are checked against each university’s official rules.</p>
+{% endblock %}

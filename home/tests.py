@@ -35,10 +35,18 @@ class AuthFlowTests(TestCase):
         self.assertTrue(User.objects.get(username='bob').check_password('pw12345!'))
 
     def test_pages_require_login(self):
-        for name in ('cgpa_calculator', 'result'):
-            r = self.client.get(reverse(name))
-            self.assertEqual(r.status_code, 302)
-            self.assertIn('/login/', r['Location'])
+        r = self.client.get(reverse('result'))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('/login/', r['Location'])
+
+    def test_root_is_landing_for_visitors_and_dashboard_for_users(self):
+        r = self.client.get('/')
+        self.assertContains(r, 'Create a free account')
+        self.assertNotContains(r, 'Total credits')
+        self.assertEqual(self.client.post('/', {'name': 'x', 'credit': 1, 'grade': 'A'}).status_code, 302)
+        self.assertEqual(Subject.objects.count(), 0)
+        self.client.login(username='alice', password='pw12345!')
+        self.assertContains(self.client.get('/'), 'Total credits')
 
 
 class SubjectCrudTests(TestCase):
